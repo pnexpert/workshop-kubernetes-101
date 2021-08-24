@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aspnet-demo
+  labels:
+    app: aspnet-demo
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      service: aspnet-demo
+  template:
+    metadata:
+      labels:
+        app: aspnet-demo
+        service: aspnet-demo
+    spec:
+      containers:
+        - name: aspnet-demo
+          image: pnk8s101/aspnet-demo
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          env:
+            - name: ASPNETCORE_URLS
+              valueFrom:
+                configMapKeyRef:
+                  name: dotnetconfig
+                  key: ASPNETCORE_URLS
+            - name: ASPNETCORE_ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: dotnetconfig
+                  key: ASPNETCORE_ENVIRONMENT

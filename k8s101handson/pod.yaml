@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-demo
+  labels:
+    app: pod-demo
+spec:
+  containers:
+    - name: pod-demo
+      image: pnk8s101/aspnet-demo
+      imagePullPolicy: IfNotPresent
+      ports:
+        - containerPort: 80
+          protocol: TCP
+      env:
+        - name: ASPNETCORE_URLS
+          value: http://+:80

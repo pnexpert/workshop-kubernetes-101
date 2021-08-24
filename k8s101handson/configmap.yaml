@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dotnetconfig
+data:
+  ASPNETCORE_URLS: http://+:80
+  ASPNETCORE_ENVIRONMENT: Development
