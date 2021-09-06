@@ -1,0 +1,32 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-nginx
+  namespace: YOUR_NAMESPACE
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls: 
+    - hosts:
+      - YOUR_NAMESPACE.workshop.demomrvn.online
+      secretName: tls-secret
+  rules:
+  - host: YOUR_NAMESPACE.workshop.demomrvn.online
+    http:
+      paths:
+      - path: /api/
+        pathType: Prefix
+        backend:
+          service:
+            name: backend2048
+            port:
+              name: backend-service
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend2048
+            port:
+              number: 8080

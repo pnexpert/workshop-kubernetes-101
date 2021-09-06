@@ -1,0 +1,67 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend2048
+  namespace: YOUR_NAMESPACE
+spec:
+  ports:
+  - name: backend-service
+    port: 8081
+    protocol: TCP
+    targetPort: backend
+  type: ClusterIP
+  selector:
+    app: backend2048
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend2048
+  namespace: YOUR_NAMESPACE
+  labels:
+    app: backend2048
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend2048
+  template:
+    metadata:
+      labels:
+        app: backend2048
+    spec:
+      containers:
+      - name: backend2048
+        image: asia-east1-docker.pkg.dev/pentitum-sre/workshop/backend2048:0.0.1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: backend
+          containerPort: 8081
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          failureThreshold: 2
+          periodSeconds: 60
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        env:
+        - name: DATABASE_HOST
+          # service name of mysql
+          value: "mysql"
+        - name: DATABASE_PORT
+          value: "3306"
+        - name: DATABASE_USER
+          value: "root"
+        - name: DATABASE_PASSWD
+          valueFrom:
+            secretKeyRef:
+              name: mysql
+              key: mysql-root-password
+        - name: PYTHONUNBUFFERED
+          value: "1"
