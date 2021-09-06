@@ -49,12 +49,14 @@ spec:
         ports:
         - name: frontend
           containerPort: 80
+        # 當 livenessProbe 沒通過時，kubelet 會把這個 container 刪除重啟
         livenessProbe:
           httpGet:
             path: /
             port: 80
           failureThreshold: 2
           periodSeconds: 60
+        # 當 readinessProbe 沒通過時，這個 pod 不會得到從 Service 來的流量
         readinessProbe:
           httpGet:
             path: /
@@ -63,6 +65,7 @@ spec:
           periodSeconds: 5
         volumeMounts:
         - name: "config"
+          # 把 config js 檔掛載到 html 檔的根目錄(/usr/share/nginx/html/)
           mountPath: "/usr/share/nginx/html/js/config.js"
           subPath: "config.js"
       volumes:

@@ -9,6 +9,7 @@ spec:
   - name: backend-service
     port: 8081
     protocol: TCP
+    # targetPort 支援 container 的 port 名稱，或 port 號碼
     targetPort: backend
   type: ClusterIP
   selector:
@@ -38,12 +39,14 @@ spec:
         ports:
         - name: backend
           containerPort: 8081
+        # 當 livenessProbe 沒通過時，kubelet 會把這個 container 刪除重啟
         livenessProbe:
           httpGet:
             path: /healthz
             port: 8081
           failureThreshold: 2
           periodSeconds: 60
+        # 當 readinessProbe 沒通過時，這個 pod 不會得到從 Service 來的流量
         readinessProbe:
           httpGet:
             path: /healthz
