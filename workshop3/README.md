@@ -12,6 +12,10 @@ docker run -d -v $(pwd):/workspace -v $(pwd)/config:/root/.kube/config -ti --nam
 docker exec -ti helm sh
 ```
 
+## MySQL 的 helm repo
+bitnami/mysql: [https://github.com/bitnami/charts/tree/master/bitnami/mysql](https://github.com/bitnami/charts/tree/master/bitnami/mysql)
+
+
 # 關閉環境
 ```
 docker rm -f helm
