@@ -52,13 +52,14 @@ spec:
           periodSeconds: 5
         env:
         - name: DATABASE_HOST
-          # service name of mysql
+          # mysql 的 service 名稱
           value: "mysql"
         - name: DATABASE_PORT
           value: "3306"
         - name: DATABASE_USER
           value: "root"
         - name: DATABASE_PASSWD
+          # mysql root 密碼在 secret mysql 裡面的 mysql-root-password 
           valueFrom:
             secretKeyRef:
               name: mysql
