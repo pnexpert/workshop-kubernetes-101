@@ -13,7 +13,8 @@ docker exec -ti helm sh
 ```
 
 ## MySQL 的 helm repo
-bitnami/mysql: [https://github.com/bitnami/charts/tree/master/bitnami/mysql](https://github.com/bitnami/charts/tree/master/bitnami/mysql)
+ArtifactHub: [https://artifacthub.io/packages/helm/bitnami/mysql](https://artifacthub.io/packages/helm/bitnami/mysql)  
+GitHub: [https://github.com/bitnami/charts/tree/master/bitnami/mysql](https://github.com/bitnami/charts/tree/master/bitnami/mysql)
 
 
 # 關閉環境
