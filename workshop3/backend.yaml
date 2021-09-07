@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
       - name: backend2048
-        image: asia-east1-docker.pkg.dev/pentitum-sre/workshop/backend2048:0.0.2
+        image: asia-east1-docker.pkg.dev/iuyrtnabysipseaenbgra/workshop/backend2048:1.0.0
         imagePullPolicy: IfNotPresent
         ports:
         - name: backend

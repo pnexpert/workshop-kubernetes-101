@@ -44,7 +44,7 @@ spec:
     spec:
       containers:
       - name: frontend2048
-        image: asia-east1-docker.pkg.dev/pentitum-sre/workshop/frontend2048:0.0.1
+        image: asia-east1-docker.pkg.dev/iuyrtnabysipseaenbgra/workshop/frontend2048:1.0.0
         imagePullPolicy: IfNotPresent
         ports:
         - name: frontend
