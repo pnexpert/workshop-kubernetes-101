@@ -1,0 +1,74 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend2048
+  namespace: YOUR_NAMESPACE
+spec:
+  ports:
+  - name: frontend2048-service
+    port: 8080
+    protocol: TCP
+    targetPort: 80
+  type: ClusterIP
+  selector:
+    app: frontend2048
+---
+apiVersion: v1
+kind: ConfigMap
+data:
+  config.js: |
+    var config = {
+      apiServer: "."
+    }
+metadata:
+  name: 2048config
+  namespace: YOUR_NAMESPACE
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend2048
+  namespace: YOUR_NAMESPACE
+  labels:
+    app: frontend2048
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend2048
+  template:
+    metadata:
+      labels:
+        app: frontend2048
+    spec:
+      containers:
+      - name: frontend2048
+        image: asia-east1-docker.pkg.dev/iuyrtnabysipseaenbgra/workshop/frontend2048:1.0.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: frontend
+          containerPort: 80
+        # 當 livenessProbe 沒通過時，kubelet 會把這個 container 刪除重啟
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          failureThreshold: 2
+          periodSeconds: 60
+        # 當 readinessProbe 沒通過時，這個 pod 不會得到從 Service 來的流量
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: "config"
+          # 把 config js 檔掛載到 html 檔的根目錄(/usr/share/nginx/html/)
+          mountPath: "/usr/share/nginx/html/js/config.js"
+          subPath: "config.js"
+      volumes:
+        - name: "config"
+          configMap:
+            name: "2048config"

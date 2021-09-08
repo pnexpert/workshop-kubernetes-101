@@ -1,0 +1,71 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend2048
+  namespace: YOUR_NAMESPACE
+spec:
+  ports:
+  - name: backend-service
+    port: 8081
+    protocol: TCP
+    # targetPort 支援 container 的 port 名稱，或 port 號碼
+    targetPort: backend
+  type: ClusterIP
+  selector:
+    app: backend2048
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend2048
+  namespace: YOUR_NAMESPACE
+  labels:
+    app: backend2048
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend2048
+  template:
+    metadata:
+      labels:
+        app: backend2048
+    spec:
+      containers:
+      - name: backend2048
+        image: asia-east1-docker.pkg.dev/iuyrtnabysipseaenbgra/workshop/backend2048:1.0.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: backend
+          containerPort: 8081
+        # 當 livenessProbe 沒通過時，kubelet 會把這個 container 刪除重啟
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          failureThreshold: 2
+          periodSeconds: 60
+        # 當 readinessProbe 沒通過時，這個 pod 不會得到從 Service 來的流量
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        env:
+        - name: DATABASE_HOST
+          # mysql 的 service 名稱
+          value: "mysql"
+        - name: DATABASE_PORT
+          value: "3306"
+        - name: DATABASE_USER
+          value: "root"
+        - name: DATABASE_PASSWD
+          # mysql root 密碼在 secret mysql 裡面的 mysql-root-password 
+          valueFrom:
+            secretKeyRef:
+              name: mysql
+              key: mysql-root-password
+        - name: PYTHONUNBUFFERED
+          value: "1"

@@ -1,0 +1,38 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-nginx
+  namespace: YOUR_NAMESPACE
+  annotations:
+    # nginx ingress controller 支援 http 重導向到 https
+    # https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#server-side-https-enforcement-through-redirect
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  # ingressClass 使用 nginx
+  ingressClassName: nginx
+  tls: 
+    - hosts:
+      - YOUR_NAMESPACE.workshop.demomrvn.online
+      secretName: tls-secret
+  rules:
+  - host: YOUR_NAMESPACE.workshop.demomrvn.online
+    http:
+      # nginx ingress controller 會先配對比較長的路徑
+      # 以下兩條 rule 的結果是 /api/ 都會導向 backend，其餘皆導向 frontend
+      paths:
+      - path: /api/
+        pathType: Prefix
+        backend:
+          service:
+            name: backend2048
+            port:
+              # port 可以使用 service 裡 port 的名稱
+              name: backend-service
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend2048
+            port:
+              number: 8080
