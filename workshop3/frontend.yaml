@@ -63,6 +63,13 @@ spec:
             port: 80
           initialDelaySeconds: 5
           periodSeconds: 5
+        resources:
+          requests:
+            cpu: 8m
+            memory: 32Mi
+          limits:
+            cpu: 16m
+            memory: 64Mi
         volumeMounts:
         - name: "config"
           # 把 config js 檔掛載到 html 檔的根目錄(/usr/share/nginx/html/)
@@ -72,3 +79,4 @@ spec:
         - name: "config"
           configMap:
             name: "2048config"
+            
