@@ -1,0 +1,15 @@
+resources:
+- deployment.yaml
+- service.yaml
+- configMap.yaml
+namePrefix: staging-
+commonLabels:
+  variant: staging
+  org: acmeCorporation
+commonAnnotations:
+  note: Hello, I am staging!
+#configMapGenerator:
+#- name: the-map
+#  literals:
+#    - altGreeting=Good Morning!
+#    - enableRisky=false

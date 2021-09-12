@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: staging-the-map
+data:
+  altGreeting: "Good Morning! STAGING!"
+  enableRisky: "false"
