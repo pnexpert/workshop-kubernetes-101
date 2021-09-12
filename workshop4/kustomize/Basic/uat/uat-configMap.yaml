@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: uat-the-map
-data:
-  altGreeting: "Good Morning! UAT!"
-  enableRisky: "false"

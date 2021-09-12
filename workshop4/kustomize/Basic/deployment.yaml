@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: the-container
-        image: hello
+        image: pnk8s101/hello:1
         command: ["/hello",
                   "--port=8080",
                   "--enableRiskyFeature=$(ENABLE_RISKY)"]
