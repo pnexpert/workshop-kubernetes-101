@@ -277,11 +277,13 @@ spec:
   externalTrafficPolicy: Local
   ports:
     - name: http
-      port: 80
+    # you can custom ingress port here for HTTP
+      port: 8080
       protocol: TCP
       targetPort: http
+    # you can custom ingress port here for HTTPS
     - name: https
-      port: 443
+      port: 8443
       protocol: TCP
       targetPort: https
   selector:
