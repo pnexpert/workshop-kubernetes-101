@@ -1,0 +1,16 @@
+namePrefix: production-
+commonLabels:
+  variant: production
+  org: acmeCorporation
+commonAnnotations:
+  note: Hello, I am production!
+
+bases:
+ - ../base
+patchesStrategicMerge:
+- configMap.yaml
+- deployment.yaml
+
+images:
+- name: pnk8s101/hello
+  newTag: "3"

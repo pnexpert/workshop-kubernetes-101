@@ -1,0 +1,13 @@
+namePrefix: staging-
+commonLabels:
+  variant: staging
+  org: acmeCorporation
+commonAnnotations:
+  note: Hello, I am staging!
+bases:
+- ../base
+patchesStrategicMerge:
+- configMap.yaml
+images:
+- name: pnk8s101/hello
+  newTag: "2"

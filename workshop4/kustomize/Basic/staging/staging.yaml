@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: staging-the-map
+data:
+  altGreeting: "Hello Staging!"
+  enableRisky: "false"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: staging-the-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      deployment: hello
+  template:
+    metadata:
+      labels:
+        deployment: hello
+    spec:
+      containers:
+      - name: the-container
+        image: pnk8s101/hello:3
+        command: ["/hello",
+                  "--port=8080",
+                  "--enableRiskyFeature=$(ENABLE_RISKY)"]
+        ports:
+        - containerPort: 8080
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        env:
+        - name: ALT_GREETING
+          valueFrom:
+            configMapKeyRef:
+              name: staging-the-map
+              key: altGreeting
+        - name: ENABLE_RISKY
+          valueFrom:
+            configMapKeyRef:
+              name: staging-the-map
+              key: enableRisky
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: staging-the-service
+spec:
+  selector:
+    deployment: hello
+  type: LoadBalancer
+  ports:
+  - protocol: TCP
+    port: 8666
+    targetPort: 8080

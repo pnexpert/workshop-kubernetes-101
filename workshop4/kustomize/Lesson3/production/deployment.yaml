@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: the-deployment
+spec:
+  replicas: 5
+  template:
+    spec:
+      containers:
+      - name: the-container
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+      - name: watch-the-container
+        image: curlimages/curl:7.78.0
+        imagePullPolicy: IfNotPresent
+        command: ["watch", "-n", "10",
+                  "curl", "localhost:8080" ]
