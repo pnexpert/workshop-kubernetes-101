@@ -1,0 +1,13 @@
+resources:
+- configMap.yaml
+- deployment.yaml
+- service.yaml
+
+namePrefix: staging-
+commonLabels:
+  variants: staging
+
+images:
+- name: monopole/hello
+  newName: pnk8s101/hello
+  newTag: "2"
