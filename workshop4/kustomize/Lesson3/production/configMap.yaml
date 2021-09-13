@@ -3,5 +3,5 @@ kind: ConfigMap
 metadata:
   name: the-map
 data:
-  altGreeting: "Have a pineapple!"
+  altGreeting: "Production is HERE!"
   enableRisky: "true"
