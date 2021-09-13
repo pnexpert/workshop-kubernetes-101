@@ -7,4 +7,7 @@ commonAnnotations:
 bases:
 - ../base
 patchesStrategicMerge:
-- map.yaml
+- configMap.yaml
+images:
+- name: pnk8s101/hello
+  newTag: "2"

@@ -49,9 +49,10 @@ spec:
               key: enableRisky
       - name: watch-the-container
         image: curlimages/curl:7.78.0
+        imagePullPolicy: IfNotPresent
         command: ["watch", "-n", "10",
                   "curl", "localhost:8080" ]
-        imagePullPolicy: IfNotPresent
+
 
 ---
 kind: Service
