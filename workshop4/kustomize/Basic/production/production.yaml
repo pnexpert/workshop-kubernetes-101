@@ -3,15 +3,15 @@ kind: ConfigMap
 metadata:
   name: production-the-map
 data:
-  altGreeting: "Good Morning!"
-  enableRisky: "false"
+  altGreeting: "Production is HERE!"
+  enableRisky: "true"
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: production-the-deployment
 spec:
-  replicas: 3
+  replicas: 5
   selector:
     matchLabels:
       deployment: hello
@@ -22,13 +22,20 @@ spec:
     spec:
       containers:
       - name: the-container
-        image: pnk8s101/hello:1
+        image: pnk8s101/hello:2
         command: ["/hello",
                   "--port=8080",
                   "--enableRiskyFeature=$(ENABLE_RISKY)"]
         ports:
         - containerPort: 8080
         imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
         env:
         - name: ALT_GREETING
           valueFrom:
@@ -40,6 +47,12 @@ spec:
             configMapKeyRef:
               name: production-the-map
               key: enableRisky
+      - name: watch-the-container
+        image: curlimages/curl:7.78.0
+        command: ["watch", "-n", "10",
+                  "curl", "localhost:8080" ]
+        imagePullPolicy: IfNotPresent
+
 ---
 kind: Service
 apiVersion: v1
@@ -51,5 +64,5 @@ spec:
   type: LoadBalancer
   ports:
   - protocol: TCP
-    port: 8666
+    port: 8080
     targetPort: 8080

@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: staging-the-map
 data:
-  altGreeting: "Good Morning!"
+  altGreeting: "Hello Staging!"
   enableRisky: "false"
 ---
 apiVersion: apps/v1
@@ -22,13 +22,20 @@ spec:
     spec:
       containers:
       - name: the-container
-        image: pnk8s101/hello:1
+        image: pnk8s101/hello:3
         command: ["/hello",
                   "--port=8080",
                   "--enableRiskyFeature=$(ENABLE_RISKY)"]
         ports:
         - containerPort: 8080
         imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
         env:
         - name: ALT_GREETING
           valueFrom:

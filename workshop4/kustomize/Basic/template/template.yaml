@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: the-container
-        image: pnk8s101/hello:1
+        image: pnk8s101/hello:{{ VERSION }}
         command: ["/hello",
                   "--port=8080",
                   "--enableRiskyFeature=$(ENABLE_RISKY)"]
@@ -51,5 +51,5 @@ spec:
   type: LoadBalancer
   ports:
   - protocol: TCP
-    port: 8666
+    port: {{ PORT }}
     targetPort: 8080
