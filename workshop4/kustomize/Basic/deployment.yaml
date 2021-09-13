@@ -15,12 +15,12 @@ spec:
       containers:
       - name: the-container
         image: pnk8s101/hello:1
+        imagePullPolicy: IfNotPresent
         command: ["/hello",
                   "--port=8080",
                   "--enableRiskyFeature=$(ENABLE_RISKY)"]
         ports:
         - containerPort: 8080
-        imagePullPolicy: IfNotPresent
         env:
         - name: ALT_GREETING
           valueFrom:
