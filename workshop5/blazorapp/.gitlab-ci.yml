@@ -1,0 +1,72 @@
+stages:
+  - test
+  - build-push
+
+test:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:5.0-alpine
+  variables:
+    TARGET_PROJECT_PATH: "src/BlazorApp"
+    NUGET_PACKAGES_DIRECTORY: '.nuget'
+  cache:
+    key: "$CI_COMMIT_BRANCH"
+    paths:
+      # package 相依檔
+      - '${TARGET_PROJECT_PATH}/obj/project.assets.json'
+      # 其他 nuget, msbuild 相關檔案
+      - '${TARGET_PROJECT_PATH}/obj/*.csproj.nuget.*'
+      # nuget restore 目錄
+      - '${NUGET_PACKAGES_DIRECTORY}'
+  script:
+    - time dotnet restore --packages ${NUGET_PACKAGES_DIRECTORY}
+    - time dotnet test --no-restore
+
+build-push:
+  stage: build-push
+  variables:
+    # 打開 docker buildkit
+    DOCKER_BUILDKIT: "1"
+    # 詳情: https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
+    # 因為 CI_PROJECT_PATH_SLUG 是 group-subgroup-project 的意思
+    # 所以 image 會像: workshop5-<你的名字>-blazorapp:<pipeline流水號>
+    IMAGE: ${CI_PROJECT_PATH_SLUG}:${CI_PIPELINE_IID}
+  image: docker:20.10
+  script:
+    - docker build -t ${IMAGE} -f src/BlazorApp/Dockerfile ./src
+    # 登入 Google Artifact Registry
+    - echo ${GAR_KEY} | docker login "${IMAGE_REGISTRY_URL}" -u _json_key_base64 --password-stdin
+    - docker tag ${IMAGE} ${IMAGE_REGISTRY}/${IMAGE}
+    - docker push ${IMAGE_REGISTRY}/${IMAGE}
+    # 把推送結果輸入到 log 裡
+    - echo push ${IMAGE_REGISTRY}/${IMAGE} finished
+  rules:
+    # 只有 default branch 才可以建 image
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+.build-push-arm:
+  stage: build-push
+  variables:
+    # 打開 docker buildkit
+    DOCKER_BUILDKIT: "1"
+    # 詳情: https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
+    # 因為 CI_PROJECT_PATH_SLUG 是 group-subgroup-project 的意思
+    # 所以 image 會像: workshop5-<你的名字>-blazorapp:<pipeline流水號>
+    IMAGE: ${CI_PROJECT_PATH_SLUG}:${CI_PIPELINE_IID}-arm
+  image: docker:20.10
+  before_script:
+    # 準備 buildx 的環境
+    - apk add curl
+    - mkdir -p ~/.docker/cli-plugins
+    - curl -o ~/.docker/cli-plugins/docker-buildx -L https://github.com/docker/buildx/releases/download/v0.6.3/buildx-v0.6.3.linux-amd64
+    - chmod a+x ~/.docker/cli-plugins/docker-buildx
+    - docker buildx create --use --name arm-builder default
+  script:
+    # 登入 Google Artifact Registry
+    - echo ${GAR_KEY} | docker login "${IMAGE_REGISTRY_URL}" -u _json_key_base64 --password-stdin
+    # 建構 image 的同時把 image 推送到 registry 上
+    - docker buildx build --no-cache --push --platform linux/arm64 -t ${IMAGE_REGISTRY}/${IMAGE} -f src/BlazorApp/Dockerfile ./src
+    # 把推送結果輸入到 log 裡
+    - echo push ${IMAGE_REGISTRY}/${IMAGE} finished
+  rules:
+    # 只有 default branch 才可以建 image
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
