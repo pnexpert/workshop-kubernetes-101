@@ -6,6 +6,7 @@ ARG TARGETPLATFORM
 ARG BUILDPLATFORM
 ARG HELM_TAG=v3.6.3
 ARG KUBECTL_TAG=v1.19.12
+ARG FLUX_VERSION=0.17.1
 
 RUN apk add curl
 
@@ -38,11 +39,30 @@ RUN case ${TARGETPLATFORM} in \
   chmod +x /usr/bin/kubectl
 
 
+FROM --platform=$BUILDPLATFORM base AS flux
+# reference: https://github.com/fluxcd/flux2/releases
+RUN case ${TARGETPLATFORM} in \
+  "linux/amd64")    ARCH="amd64";  ;; \
+  "linux/arm/v6")   ARCH="arm";  ;; \
+  "linux/arm/v7")   ARCH="arm";  ;; \
+  "linux/arm64/v8") ARCH="arm64";   ;; \
+  "linux/arm64") ARCH="arm64";   ;; \
+  esac && \
+  curl -o flux.tar.gz -L https://github.com/fluxcd/flux2/releases/download/v${FLUX_VERSION}/flux_${FLUX_VERSION}_linux_${ARCH}.tar.gz && \
+  tar xf flux.tar.gz && \
+  mv flux /usr/bin/flux && \
+  chmod +x /usr/bin/flux && \
+  rm -rf flux.tar.gz
+
+
 FROM alpine:3.14
 WORKDIR /workspace
 RUN apk add bash bash-completion
 COPY --from=kubectl /usr/bin/kubectl /usr/bin/kubectl
 COPY --from=helm /usr/bin/helm /usr/bin/helm
-RUN echo 'source /etc/profile.d/bash_completion.sh' >> ~/.bashrc && \
-    echo 'source <(kubectl completion bash)' >> ~/.bashrc
+COPY --from=flux /usr/bin/flux /usr/bin/flux
+RUN echo "export GITLAB_TOKEN=__GITLAB_TOKEN__" >> ~/.bashrc && \
+    echo 'source /etc/profile.d/bash_completion.sh' >> ~/.bashrc && \
+    echo 'source <(kubectl completion bash)' >> ~/.bashrc && \
+    echo 'command -v flux >/dev/null && . <(flux completion bash)' >> ~/.bashrc
 CMD ["sleep", "365d"]
