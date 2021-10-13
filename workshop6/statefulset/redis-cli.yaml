@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-connect
+  namespace: __YOUR_NAME__
+data:
+  # 透過 sentinel 取得主節點的資訊
+  get-master.sh: |
+    #!/bin/bash
+    export REDIS_MASTER=$(redis-cli -h redis -p 26379 sentinel get-master-addr-by-name mymaster | head -n 1)
+    echo "master: $REDIS_MASTER"
+  # 連線到 redis 的主節點上 (可讀/寫)
+  connect-redis.sh: |
+    #!/bin/bash
+    source get-master.sh
+    redis-cli -h $REDIS_MASTER -p 6379
+  # 簡單的把 key=my-name value=自己名字的資料寫進 redis 裡
+  write-redis-my-name.sh: |
+    #!/bin/bash
+    source get-master.sh
+    redis-cli -h $REDIS_MASTER -p 6379 SET my-name __YOUR_NAME__
+    redis-cli -h $REDIS_MASTER -p 6379 GET my-name
+  # 在 redis 裡讀取 my-name 的值
+  read-redis-my-name.sh: |
+    #!/bin/bash
+    source get-master.sh
+    redis-cli -h $REDIS_MASTER -p 6379 GET my-name
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: redis-cli
+  name: redis-cli
+  namespace: __YOUR_NAME__
+spec:
+  containers:
+  - image: asia-east1-docker.pkg.dev/pentitum-sre/workshop/redis-alpine
+    imagePullPolicy: IfNotPresent
+    name: redis-cli
+    resources: 
+      requests:
+        memory: "16Mi"
+        cpu: "8m"
+      limits:
+        memory: "32Mi"
+        cpu: "32m"
+    env:
+    - name: PS1
+      value: \[\e[1;32m\]@redis \[\e[1;34m\]# \[\e[0m\]
+    # redis-cli 內建會讀取 REDISCLI_AUTH 這個環境給數當作 redis 密碼
+    - name: REDISCLI_AUTH
+      valueFrom:
+        # 這個 secret 是 helm 產生的，用來裝 redis 密碼
+        # 這邊直接引用使用
+        secretKeyRef:
+          name: redis
+          key: redis-password
+    readinessProbe:
+      exec:
+        command:
+        - bash
+        - --version
+    volumeMounts:
+    - name: shell-scripts
+      mountPath: /data/
+  volumes:
+    - name: shell-scripts
+      configMap:
+        name: redis-connect
+        defaultMode: 0700
+  terminationGracePeriodSeconds: 0

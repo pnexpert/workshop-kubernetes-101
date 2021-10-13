@@ -1,0 +1,5 @@
+  tolerations:
+    - key: pentium.network/workshop6-node-weight
+      operator: "Equal"
+      value: "10"
+      effect: "NoExecute"

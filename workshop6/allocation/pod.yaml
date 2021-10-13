@@ -1,0 +1,49 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod- #Enter your pod name
+  namespace: default
+  labels:
+    purpose: workshop6
+spec:
+  containers:
+  - name: fundamental-pattern-practice
+    image: k8s.gcr.io/busybox
+    args:
+    - /bin/sh
+    - -c
+    - |-  
+      touch /tmp/$HEALTH; 
+      echo "helloworld" > /tmp/$HEALTH;
+      sleep 30;
+      cat /tmp/$HEALTH;
+      rm -rf /tmp/$HEALTH; 
+      sleep 240
+    env:
+    - name: HEALTH
+      valueFrom:
+        configMapKeyRef:
+          name: fundamental-pattern-cm
+          key: file
+    resources:
+      requests:
+        cpu: 10m
+        memory: 50Mi
+      limits:
+        cpu: 10m
+        memory: 100Mi
+    readinessProbe:
+      exec:
+        command:
+        - cat
+        - /tmp/healthy
+      initialDelaySeconds: 5
+      periodSeconds: 5
+    livenessProbe:
+      exec:
+        command:
+        - cat
+        - /tmp/healthy
+      initialDelaySeconds: 10
+      periodSeconds: 5
