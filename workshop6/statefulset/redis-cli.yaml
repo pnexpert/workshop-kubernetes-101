@@ -48,7 +48,7 @@ spec:
     env:
     - name: PS1
       value: \[\e[1;32m\]@redis \[\e[1;34m\]# \[\e[0m\]
-    # redis-cli 內建會讀取 REDISCLI_AUTH 這個環境給數當作 redis 密碼
+    # redis-cli 內建會讀取 REDISCLI_AUTH 這個環境變數當作 redis 密碼
     - name: REDISCLI_AUTH
       valueFrom:
         # 這個 secret 是 helm 產生的，用來裝 redis 密碼
