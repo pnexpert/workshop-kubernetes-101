@@ -1,0 +1,15 @@
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: pentium.network/workshop6-progress
+                operator: In
+                values:
+                  - node_affinity
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - preference:
+            matchExpressions:
+              - key: pentium.network/workshop6-node-weight
+                operator: Exists
+          weight: 10

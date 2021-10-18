@@ -1,0 +1,12 @@
+sentinel:
+  enabled: true           # 使用 redis sentinel cluster
+replica:
+  replicaCount: 3         # redis cluster 的節點數
+  resources:
+    requests:
+      cpu: "32m"
+      memory: "64Mi"
+  persistence:
+    size: 1Gi             # PV(硬碟)容量
+auth:
+  password: qwerasdfzxcv  # redis 的密碼

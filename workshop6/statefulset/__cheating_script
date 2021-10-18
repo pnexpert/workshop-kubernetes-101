@@ -1,0 +1,4 @@
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+helm -n __YOUR_NAME__ install redis bitnami/redis \
+    -f statefulset/redis-values.yaml --version 15.3.2
