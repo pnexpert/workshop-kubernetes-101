@@ -1,40 +1,65 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: __YOUR_NAME__
+  name: __YOUR_NAME__-init-2
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: init-container-2
+            port:
+              number: 80
+    host: "__YOUR_NAME__-init-2.workshop.demomrvn.online"
+---
 apiVersion: v1
 kind: Secret
 metadata:
+  namespace: __YOUR_NAME__
   name: init-container-2-secret
 type: Opaque
 data:
+  # 經過 base64 編碼的 token
   token: MTIzNHF3ZXIK
 ---
 apiVersion: v1
 kind: Service
 metadata:
+  namespace: __YOUR_NAME__
   name: init-container-2
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: init-container-2
   ports:
     - name: init-container-2
       protocol: TCP
-      nodePort: 30442
+      targetPort: 80
       port: 80
 ---
 apiVersion: v1
 kind: Pod
 metadata:
+  namespace: __YOUR_NAME__
   name: init-container-2
   labels:
     app: init-container-2
 spec:
+  # 在 Pod 內的所有 container 共享 volume
   volumes:
   - name: workdir
     emptyDir: {}
+  # 在 Pod 內使用名稱為 init-container-2-secret 的 secret 資源  
   - name: token
     secret:
       secretName: init-container-2-secret
   initContainers:
-  - name: busybox
+  - name: init
     image: busybox
     imagePullPolicy: IfNotPresent
     command: ["/bin/sh"]
@@ -42,11 +67,12 @@ spec:
     volumeMounts:
     - name: workdir
       mountPath: "/work-dir"
+    # 只有 init container 掛載 secret  
     - name: token
       mountPath: "/etc/token"
       readOnly: true
   containers:
-  - name: nginx
+  - name: main
     image: nginx:alpine
     imagePullPolicy: IfNotPresent
     ports:
@@ -56,8 +82,8 @@ spec:
       mountPath: /usr/share/nginx/html
     resources:
       requests:
-        memory: "64Mi"
+        memory: "32Mi"
         cpu: "50m"
       limits:
-        memory: "128Mi"
-        cpu: "250m"
+        memory: "32Mi"
+        cpu: "50m"

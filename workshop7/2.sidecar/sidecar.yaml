@@ -1,26 +1,52 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: __YOUR_NAME__
+  name: __YOUR_NAME__-sidecar
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: sidecar
+            port:
+              number: 80
+    host: "__YOUR_NAME__-sidecar.workshop.demomrvn.online"
+---
 apiVersion: v1
 kind: Service
 metadata:
+  namespace: __YOUR_NAME__
   name: sidecar
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: sidecar
   ports:
     - name: sidecar
       protocol: TCP
-      nodePort: 30443
+      targetPort: 80
       port: 80
 ---
 apiVersion: v1
 kind: Pod
 metadata:
+  namespace: __YOUR_NAME__
   name: sidecar
   labels:
     app: sidecar
 spec:
+  volumes:
+    - name: shared-logs
+      emptyDir: {}
+    - name: workdir
+      emptyDir: {}
   initContainers:
-  - name: busybox
+  - name: init
     image: busybox
     imagePullPolicy: IfNotPresent
     command: ["/bin/sh"]
@@ -29,7 +55,7 @@ spec:
     - name: workdir
       mountPath: "/work-dir"
   containers:
-  - name: nginx
+  - name: main
     image: nginx:alpine
     imagePullPolicy: IfNotPresent
     ports:
@@ -41,27 +67,22 @@ spec:
       mountPath: /usr/share/nginx/html
     resources:
       requests:
-        memory: "64Mi"
+        memory: "32Mi"
         cpu: "50m"
       limits:
-        memory: "128Mi"
-        cpu: "250m"
+        memory: "32Mi"
+        cpu: "50m"
   - name: sidecar
     image: alpine:latest
     imagePullPolicy: IfNotPresent
-    command: ["sh","-c","apk add coreutils; tail -f /var/log/nginx/access.log /var/log/nginx/error.log | stdbuf -oL cat"]
+    command: ["sh","-c","apk add coreutils; tail -f /var/log/nginx/access.log | stdbuf -oL cat"]
     volumeMounts:
       - name: shared-logs
         mountPath: /var/log/nginx
     resources:
       requests:
         memory: "64Mi"
-        cpu: "50m"
+        cpu: "100m"
       limits:
-        memory: "128Mi"
-        cpu: "250m"
-  volumes:
-    - name: shared-logs
-      emptyDir: {}
-    - name: workdir
-      emptyDir: {}
+        memory: "64Mi"
+        cpu: "100m"
