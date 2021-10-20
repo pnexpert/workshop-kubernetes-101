@@ -115,8 +115,7 @@ spec:
     imagePullPolicy: IfNotPresent
     workingDir: /root
     command: ["/bin/sh", "-c"]
-    args: ["apk add curl yq; curl -s http://localhost | python -c 'import csv, json, sys; print(json.dumps([dict(
-r) for r in csv.DictReader(sys.stdin)]))' > index.html; cat index.html | yq e -P > yaml.html; python3 -m http.server 8080"]
+    args: ["apk add curl yq; curl -s http://localhost | python -c 'import csv, json, sys; print(json.dumps([dict(r) for r in csv.DictReader(sys.stdin)]))' > index.html; cat index.html | yq e -P > yaml.html; python3 -m http.server 8080"]
     ports:
     - containerPort: 8080
     resources:
