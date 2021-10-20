@@ -57,10 +57,12 @@ spec:
       limits:
         memory: "32Mi"
         cpu: "50m"
+  # 利用 ambassador 提供服務單一的網址，進行後續的 ID 認證與資料處理。
   - name: ambassador
     image: pnk8s101/ambassador:v1.2
     imagePullPolicy: IfNotPresent
     env:
+    # 針對 dev 環境提供認證與連線，可改為 prod 提供 production 環境使用。
     - name: ENV
       value: dev
     resources:
@@ -70,3 +72,4 @@ spec:
       limits:
         memory: "64Mi"
         cpu: "100m"
+  terminationGracePeriodSeconds: 5

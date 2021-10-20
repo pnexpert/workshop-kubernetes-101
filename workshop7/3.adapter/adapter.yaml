@@ -25,6 +25,7 @@ spec:
             name: adapter
             port:
               number: 8080
+    # 經過 adpater 轉換的內容 FQDN
     host: "__YOUR_NAME__-adapter.workshop.demomrvn.online"
 ---
 apiVersion: v1
@@ -32,6 +33,7 @@ kind: ConfigMap
 metadata:
   namespace: __YOUR_NAME__
   name: adapter-configmap
+# 提供一個 CSV 範例檔案
 data:
   csv: |+
     album, year, US_peak_chart_post
@@ -79,6 +81,7 @@ spec:
   - name: csv
     configMap:
       name: adapter-configmap
+  # initContainers 非 adapter 必要, 僅僅提供範例檔案
   initContainers:
   - name: init
     image: busybox
@@ -106,6 +109,7 @@ spec:
       limits:
         memory: "32Mi"
         cpu: "50m"
+  # 使用 adapter 模式轉換原本 CSV 的內容為 JSON 和 YAML
   - name: adapter
     image: python:alpine
     imagePullPolicy: IfNotPresent
@@ -122,3 +126,4 @@ r) for r in csv.DictReader(sys.stdin)]))' > index.html; cat index.html | yq e -P
       limits:
         memory: "64Mi"
         cpu: "100m"
+  terminationGracePeriodSeconds: 5

@@ -15,6 +15,7 @@ spec:
             name: init-container-1
             port:
               number: 80
+    # 您的 init-container-1 service FQDN
     host: "__YOUR_NAME__-init-1.workshop.demomrvn.online"
 ---
 apiVersion: v1
@@ -77,3 +78,5 @@ spec:
       limits:
         memory: "32Mi"
         cpu: "50m"
+  # 縮短服務關閉時間
+  terminationGracePeriodSeconds: 5

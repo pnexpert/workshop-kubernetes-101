@@ -45,6 +45,7 @@ spec:
       emptyDir: {}
     - name: workdir
       emptyDir: {}
+  # initContainers 非 sidecar 必要格式，僅產生 index.html 供練習使用
   initContainers:
   - name: init
     image: busybox
@@ -55,6 +56,7 @@ spec:
     - name: workdir
       mountPath: "/work-dir"
   containers:
+  # 主程式, webserver
   - name: main
     image: nginx:alpine
     imagePullPolicy: IfNotPresent
@@ -72,9 +74,11 @@ spec:
       limits:
         memory: "32Mi"
         cpu: "50m"
+  # sidecar, Pod 內的第二個 container
   - name: sidecar
     image: alpine:latest
     imagePullPolicy: IfNotPresent
+    # 掛載相同的 shared-logs volume, 執行額外的 log 分析工作
     command: ["sh","-c","apk add coreutils; tail -f /var/log/nginx/access.log | stdbuf -oL cat"]
     volumeMounts:
       - name: shared-logs
@@ -86,3 +90,4 @@ spec:
       limits:
         memory: "64Mi"
         cpu: "100m"
+  terminationGracePeriodSeconds: 5

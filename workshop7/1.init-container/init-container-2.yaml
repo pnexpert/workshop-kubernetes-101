@@ -24,7 +24,7 @@ metadata:
   name: init-container-2-secret
 type: Opaque
 data:
-  # 經過 base64 編碼的 token
+  # 經過 base64 編碼的 token (1234qwer)
   token: MTIzNHF3ZXIK
 ---
 apiVersion: v1
@@ -63,6 +63,7 @@ spec:
     image: busybox
     imagePullPolicy: IfNotPresent
     command: ["/bin/sh"]
+    # 在 /etc/token/token 取得 token 內容
     args: ["-c", 'echo "<html><h2>Hi, I am from Init container.<br>And I got the token: $(cat /etc/token/token) from secret.</h2><html" >> /work-dir/index.html']
     volumeMounts:
     - name: workdir
@@ -87,3 +88,4 @@ spec:
       limits:
         memory: "32Mi"
         cpu: "50m"
+  terminationGracePeriodSeconds: 5
