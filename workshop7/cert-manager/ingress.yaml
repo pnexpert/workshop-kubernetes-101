@@ -1,0 +1,46 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: __YOUR_NAME__-ingress
+  annotations:
+    # 使用 annotations 告訴 cert-manager 要使用哪個簽發商
+    # 詳情: https://cert-manager.io/docs/usage/ingress/#supported-annotations
+    cert-manager.io/issuer: "__YOUR_NAME__-letsencrypt-staging"
+spec:
+  tls:
+  - hosts:
+    - __YOUR_NAME__.workshop7.demomrvn.online
+    secretName: __YOUR_NAME__-tls
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: aspnet-demo
+            port:
+              number: 80
+    host: "__YOUR_NAME__.workshop7.demomrvn.online"
+---
+# 憑證簽發商
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: __YOUR_NAME__-letsencrypt-staging
+spec:
+  acme:
+    # ACME server 使用 letsencrypt staging
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    # Email 輸入一個合法的 email，用來註冊申請憑證
+    email: __YOUR_NAME__@EMAIL
+    # 用來儲存 ACME 帳號 private key 的 Secret 名稱
+    privateKeySecretRef:
+      name: __YOUR_NAME__-letsencrypt-staging
+    # Challenge 的方式使用 HTTP-01，利用 nginx 這個 ingress class 讓 cert-manager 完成 challenge
+    solvers:
+    - http01:
+        ingress:
+          class:  nginx
