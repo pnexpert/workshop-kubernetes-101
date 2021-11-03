@@ -1,0 +1,91 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: __YOUR_NAME__
+  name: __YOUR_NAME__-init-2
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: init-container-2
+            port:
+              number: 80
+    host: "__YOUR_NAME__-init-2.workshop.demomrvn.online"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: __YOUR_NAME__
+  name: init-container-2-secret
+type: Opaque
+data:
+  # 經過 base64 編碼的 token (1234qwer)
+  token: MTIzNHF3ZXIK
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: __YOUR_NAME__
+  name: init-container-2
+spec:
+  type: ClusterIP
+  selector:
+    app: init-container-2
+  ports:
+    - name: init-container-2
+      protocol: TCP
+      targetPort: 80
+      port: 80
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: __YOUR_NAME__
+  name: init-container-2
+  labels:
+    app: init-container-2
+spec:
+  # 在 Pod 內的所有 container 共享 volume
+  volumes:
+  - name: workdir
+    emptyDir: {}
+  # 在 Pod 內使用名稱為 init-container-2-secret 的 secret 資源  
+  - name: token
+    secret:
+      secretName: init-container-2-secret
+  initContainers:
+  - name: init
+    image: busybox
+    imagePullPolicy: IfNotPresent
+    command: ["/bin/sh"]
+    # 在 /etc/token/token 取得 token 內容
+    args: ["-c", 'echo "<html><h2>Hi, I am from Init container.<br>And I got the token: $(cat /etc/token/token) from secret.</h2><html" >> /work-dir/index.html']
+    volumeMounts:
+    - name: workdir
+      mountPath: "/work-dir"
+    # 只有 init container 掛載 secret  
+    - name: token
+      mountPath: "/etc/token"
+      readOnly: true
+  containers:
+  - name: main
+    image: nginx:alpine
+    imagePullPolicy: IfNotPresent
+    ports:
+    - containerPort: 80
+    volumeMounts:
+    - name: workdir
+      mountPath: /usr/share/nginx/html
+    resources:
+      requests:
+        memory: "32Mi"
+        cpu: "50m"
+      limits:
+        memory: "32Mi"
+        cpu: "50m"
+  terminationGracePeriodSeconds: 5

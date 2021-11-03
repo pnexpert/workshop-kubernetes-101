@@ -1,0 +1,128 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: __YOUR_NAME__
+  name: __YOUR_NAME__-adapter
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: adapter
+            port:
+              number: 80
+    host: "__YOUR_NAME__-csv.workshop.demomrvn.online"
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: adapter
+            port:
+              number: 8080
+    # 經過 adpater 轉換的內容 FQDN
+    host: "__YOUR_NAME__-adapter.workshop.demomrvn.online"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: __YOUR_NAME__
+  name: adapter-configmap
+# 提供一個 CSV 範例檔案
+data:
+  csv: |+
+    album, year, US_peak_chart_post
+    The White Stripes, 1999, -
+    De Stijl, 2000, -
+    White Blood Cells, 2001, 61
+    Elephant, 2003, 6
+    Get Behind Me Satan, 2005, 3
+    Icky Thump, 2007, 2
+    Under Great White Northern Lights, 2010, 11
+    Live in Mississippi, 2011, -
+    Live at the Gold Dollar, 2012, -
+    Nine Miles from the White City, 2013, -
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: __YOUR_NAME__
+  name: adapter
+spec:
+  type: ClusterIP
+  selector:
+    app: adapter
+  ports:
+    - name: adapter
+      protocol: TCP
+      targetPort: 80
+      port: 80
+    - name: adapter-sidecar
+      protocol: TCP
+      targetPort: 8080
+      port: 8080
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: __YOUR_NAME__
+  name: adapter
+  labels:
+    app: adapter
+spec:
+  volumes:
+  - name: workdir
+    emptyDir: {}
+  - name: csv
+    configMap:
+      name: adapter-configmap
+  # initContainers 非 adapter 必要, 僅僅提供範例檔案
+  initContainers:
+  - name: init
+    image: busybox
+    imagePullPolicy: IfNotPresent
+    command: ["/bin/sh"]
+    args: ["-c", "cat /etc/csv/csv >> /work-dir/index.html"]
+    volumeMounts:
+    - name: workdir
+      mountPath: "/work-dir"
+    - name: csv
+      mountPath: "/etc/csv"
+  containers:
+  - name: main
+    image: nginx:alpine
+    imagePullPolicy: IfNotPresent
+    ports:
+    - containerPort: 80
+    volumeMounts:
+    - name: workdir
+      mountPath: /usr/share/nginx/html
+    resources:
+      requests:
+        memory: "32Mi"
+        cpu: "50m"
+      limits:
+        memory: "32Mi"
+        cpu: "50m"
+  # 使用 adapter 模式轉換原本 CSV 的內容為 JSON 和 YAML
+  - name: adapter
+    image: python:alpine
+    imagePullPolicy: IfNotPresent
+    workingDir: /root
+    command: ["/bin/sh", "-c"]
+    args: ["apk add curl yq; curl -s http://localhost | python -c 'import csv, json, sys; print(json.dumps([dict(r) for r in csv.DictReader(sys.stdin)]))' > index.html; cat index.html | yq e -P > yaml.html; python3 -m http.server 8080"]
+    ports:
+    - containerPort: 8080
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "100m"
+      limits:
+        memory: "64Mi"
+        cpu: "100m"
+  terminationGracePeriodSeconds: 5
